@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: social-postgres
+    environment:
+      POSTGRES_DB: ${SOCIAL_DB_NAME:-social_features}
+      POSTGRES_USER: ${SOCIAL_DB_USER:-social}
+      POSTGRES_PASSWORD: ${SOCIAL_DB_PASSWORD:-social}
+    ports:
+      - "${SOCIAL_DB_PORT:-5432}:5432"
+    volumes:
+      - social_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SOCIAL_DB_USER:-social} -d ${SOCIAL_DB_NAME:-social_features}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: social-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${SOCIAL_RABBIT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${SOCIAL_RABBIT_PASSWORD:-guest}
+    command: >
+      /bin/sh -c
+      "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp;
+      rabbitmq-server"
+    ports:
+      - "${SOCIAL_RABBIT_PORT:-5672}:5672"
+      - "${SOCIAL_RABBIT_MGMT_PORT:-15672}:15672"
+      - "${SOCIAL_STOMP_RELAY_PORT:-61613}:61613"
+      - "${SOCIAL_RABBIT_WEB_STOMP_PORT:-15674}:15674"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 8
+
+volumes:
+  social_postgres_data:
