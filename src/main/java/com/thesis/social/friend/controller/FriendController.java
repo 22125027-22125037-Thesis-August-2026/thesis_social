@@ -2,6 +2,7 @@ package com.thesis.social.friend.controller;
 
 import com.thesis.social.friend.dto.BlockResponseDto;
 import com.thesis.social.friend.dto.FriendDto;
+import com.thesis.social.friend.dto.FriendRequestDirection;
 import com.thesis.social.friend.dto.FriendRequestResponseDto;
 import com.thesis.social.friend.dto.SendFriendRequestDto;
 import com.thesis.social.friend.service.FriendService;
@@ -9,6 +10,7 @@ import com.thesis.social.security.AuthenticatedProfile;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,7 +38,7 @@ public class FriendController {
 
     @PostMapping("/requests")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isNotCurrentProfile(#request.receiverId())")
     public FriendRequestResponseDto sendRequest(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @Valid @RequestBody SendFriendRequestDto request
@@ -44,7 +47,7 @@ public class FriendController {
     }
 
     @DeleteMapping("/requests/{requestId}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isCurrentProfileFriendRequestParticipant(#requestId)")
     public FriendRequestResponseDto cancelRequest(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @PathVariable UUID requestId
@@ -53,7 +56,7 @@ public class FriendController {
     }
 
     @PostMapping("/requests/{requestId}/accept")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isCurrentProfileFriendRequestParticipant(#requestId)")
     public FriendRequestResponseDto acceptRequest(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @PathVariable UUID requestId
@@ -62,7 +65,7 @@ public class FriendController {
     }
 
     @PostMapping("/requests/{requestId}/reject")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isCurrentProfileFriendRequestParticipant(#requestId)")
     public FriendRequestResponseDto rejectRequest(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @PathVariable UUID requestId
@@ -71,7 +74,7 @@ public class FriendController {
     }
 
     @DeleteMapping("/{profileId}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isNotCurrentProfile(#profileId)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unfriend(
         @AuthenticationPrincipal AuthenticatedProfile profile,
@@ -86,9 +89,40 @@ public class FriendController {
         return friendService.listFriends(profile.getProfileId());
     }
 
+    @GetMapping("/requests/incoming")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public Page<FriendRequestResponseDto> listIncomingRequests(
+        @AuthenticationPrincipal AuthenticatedProfile profile,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        return friendService.listIncomingRequests(profile.getProfileId(), page, size);
+    }
+
+    @GetMapping("/requests/outgoing")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public Page<FriendRequestResponseDto> listOutgoingRequests(
+        @AuthenticationPrincipal AuthenticatedProfile profile,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        return friendService.listOutgoingRequests(profile.getProfileId(), page, size);
+    }
+
+    @GetMapping("/requests")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public Page<FriendRequestResponseDto> listRequests(
+        @AuthenticationPrincipal AuthenticatedProfile profile,
+        @RequestParam FriendRequestDirection direction,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        return friendService.listRequests(profile.getProfileId(), direction, page, size);
+    }
+
     @PostMapping("/blocks/{profileId}")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isNotCurrentProfile(#profileId)")
     public BlockResponseDto block(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @PathVariable UUID profileId
@@ -98,7 +132,7 @@ public class FriendController {
 
     @DeleteMapping("/blocks/{profileId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isNotCurrentProfile(#profileId)")
     public void unblock(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @PathVariable UUID profileId

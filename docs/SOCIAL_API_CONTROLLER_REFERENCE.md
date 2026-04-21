@@ -1,12 +1,18 @@
+# Application
+SOCIAL_APP_PORT=8083
+
 # SOCIAL FEATURES API Controller Reference
 
 ## Auth Model
 - All `/api/v1/**` endpoints require `Authorization: Bearer <jwt>`.
+- JWT signature verification is RS256 using configured RSA public key.
+- Optional configured signing key id (`kid`) check is supported.
 - Required JWT claims:
   - `profile_id` (UUID)
   - `roles` (array including `ROLE_USER` or `ROLE_ADMIN`)
-  - `iss` must match configured issuer
-  - `aud` must contain configured audience
+  - `iss` must match configured issuer (when configured)
+  - `aud` must contain configured audience (when configured)
+  - `exp` is enforced only when present
 
 ## Friend REST API
 
@@ -28,6 +34,15 @@ Accept a pending request (receiver only).
 
 ### POST `/api/v1/friends/requests/{requestId}/reject`
 Reject a pending request (receiver only).
+
+### GET `/api/v1/friends/requests/incoming?page=0&size=20`
+List pending incoming friend requests for current profile.
+
+### GET `/api/v1/friends/requests/outgoing?page=0&size=20`
+List pending outgoing friend requests for current profile.
+
+### GET `/api/v1/friends/requests?direction=INCOMING|OUTGOING&page=0&size=20`
+List pending friend requests for current profile by direction.
 
 ### DELETE `/api/v1/friends/{profileId}`
 Unfriend a profile.
@@ -61,6 +76,18 @@ Notes:
 
 ### GET `/api/v1/chats/channels`
 List channels for current profile.
+
+Response items include UI-ready card fields:
+- `channelId`
+- `type`
+- `counterpartProfileId`
+- `counterpartDisplayName` (nullable)
+- `counterpartAvatarUrl` (nullable)
+- `lastMessagePreview` (nullable)
+- `lastMessageAt` (nullable)
+- `unreadCount`
+- `moodAlert` (nullable)
+- `checkInPrompt` (nullable)
 
 ### GET `/api/v1/chats/channels/{channelId}/messages?page=0&size=20`
 Paginated channel messages (descending by `createdAt`).

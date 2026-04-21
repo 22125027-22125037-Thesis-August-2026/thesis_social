@@ -21,6 +21,7 @@ import com.thesis.social.friend.service.FriendService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -81,7 +82,7 @@ public class ChatService {
             chatParticipantRepository.save(participant);
         }
 
-        return toChannelDto(savedChannel, participants);
+        return toChannelDto(savedChannel, participants, requesterId, null, 0);
     }
 
     @Transactional(readOnly = true)
@@ -95,7 +96,11 @@ public class ChatService {
                     .stream()
                     .map(ChatParticipantEntity::getProfileId)
                     .collect(Collectors.toSet());
-                return toChannelDto(channel, participantIds);
+
+                Optional<MessageEntity> lastMessage = messageRepository.findFirstByChannelIdOrderByCreatedAtDesc(channel.getId());
+                long unreadCount = messageRepository.countByChannelIdAndIsReadFalseAndSenderIdNot(channel.getId(), profileId);
+
+                return toChannelDto(channel, participantIds, profileId, lastMessage.orElse(null), unreadCount);
             })
             .toList();
     }
@@ -188,13 +193,33 @@ public class ChatService {
         }
     }
 
-    private ChatChannelResponseDto toChannelDto(ChatChannelEntity channel, Set<UUID> participantIds) {
+    private ChatChannelResponseDto toChannelDto(
+        ChatChannelEntity channel,
+        Set<UUID> participantIds,
+        UUID currentProfileId,
+        MessageEntity lastMessage,
+        long unreadCount
+    ) {
+        UUID counterpartProfileId = participantIds.stream()
+            .filter(id -> !id.equals(currentProfileId))
+            .findFirst()
+            .orElse(null);
+        String lastMessagePreview = lastMessage == null ? null : lastMessage.getContent();
         return new ChatChannelResponseDto(
+            channel.getId(),
             channel.getId(),
             channel.getType(),
             channel.getReferenceId(),
             participantIds,
-            channel.getCreatedAt()
+            channel.getCreatedAt(),
+            counterpartProfileId,
+            null,
+            null,
+            lastMessagePreview,
+            lastMessage == null ? null : lastMessage.getCreatedAt(),
+            unreadCount,
+            null,
+            null
         );
     }
 

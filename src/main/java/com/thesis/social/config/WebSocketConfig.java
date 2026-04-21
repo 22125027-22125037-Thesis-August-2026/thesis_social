@@ -1,6 +1,8 @@
 package com.thesis.social.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thesis.social.security.StompJwtChannelInterceptor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -43,5 +45,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(stompJwtChannelInterceptor);
+    }
+
+    @Bean
+    SocialStompErrorHandler stompErrorHandler(ObjectMapper objectMapper) {
+        return new SocialStompErrorHandler(objectMapper);
     }
 }

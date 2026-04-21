@@ -27,6 +27,11 @@ docker compose up -d
 ```
 
 RabbitMQ management UI defaults to `http://localhost:15672`.
+pgAdmin defaults to `http://localhost:5052/browser/`.
+
+Default pgAdmin login:
+- Email: `admin@social.local`
+- Password: `admin`
 
 ## Run Application
 ```bash
@@ -52,6 +57,14 @@ gradle test --tests "com.thesis.social.friend.service.FriendServiceTest"
   - `spring.config.import=optional:file:.env[.properties]`
 - `/api/v1/**` endpoints require bearer auth by default.
 - WebSocket auth is stateless via STOMP `CONNECT` header interception.
+- JWT verification is RS256-only and uses `SOCIAL_JWT_PUBLIC_KEY` (Base64 X.509 RSA public key).
+- Optional hard `kid` pinning is available via `SOCIAL_JWT_SIGNING_KID`.
+
+## JWT Migration Note (HMAC -> RSA)
+- `SOCIAL_JWT_SECRET` is removed and no longer supported.
+- Set `SOCIAL_JWT_PUBLIC_KEY` with the auth service RSA public key.
+- Set `SOCIAL_JWT_SIGNING_KID` only if you need strict `kid` header matching.
+- Existing `SOCIAL_JWT_ISSUER` and `SOCIAL_JWT_AUDIENCE` remain supported validation checks.
 
 ## Eventing, Idempotency, and Retry-Safe Consumers
 Produced events:
@@ -70,7 +83,7 @@ Consumer design guidance:
 - Make downstream writes upsert-based where possible.
 
 ## API and WS Reference
-See `docs/API_CONTROLLER_REFERENCE.md`.
+See `docs/SOCIAL_API_CONTROLLER_REFERENCE.md`.
 
 ## Architecture Notes
 - Domain-driven isolation: this service does not own identity records.

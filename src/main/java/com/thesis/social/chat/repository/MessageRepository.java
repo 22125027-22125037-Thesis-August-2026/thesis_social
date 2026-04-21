@@ -12,4 +12,8 @@ public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
     Page<MessageEntity> findByChannelIdOrderByCreatedAtDesc(UUID channelId, Pageable pageable);
 
     Optional<MessageEntity> findByIdAndChannelId(UUID id, UUID channelId);
+
+    Optional<MessageEntity> findFirstByChannelIdOrderByCreatedAtDesc(UUID channelId);
+
+    long countByChannelIdAndIsReadFalseAndSenderIdNot(UUID channelId, UUID senderId);
 }

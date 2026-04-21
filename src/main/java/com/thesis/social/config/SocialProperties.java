@@ -51,16 +51,25 @@ public class SocialProperties {
         }
 
         public static class Jwt {
-            private String secret;
+            private String publicKey;
+            private String signingKid;
             private String issuer;
             private String audience;
 
-            public String getSecret() {
-                return secret;
+            public String getPublicKey() {
+                return publicKey;
             }
 
-            public void setSecret(String secret) {
-                this.secret = secret;
+            public void setPublicKey(String publicKey) {
+                this.publicKey = publicKey;
+            }
+
+            public String getSigningKid() {
+                return signingKid;
+            }
+
+            public void setSigningKid(String signingKid) {
+                this.signingKid = signingKid;
             }
 
             public String getIssuer() {

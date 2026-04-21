@@ -51,7 +51,7 @@ public class ChatController {
     }
 
     @GetMapping("/channels/{channelId}/messages")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isCurrentProfileActiveParticipant(#channelId)")
     public Page<ChatMessageResponseDto> listMessages(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @PathVariable UUID channelId,
@@ -62,7 +62,7 @@ public class ChatController {
     }
 
     @PatchMapping("/channels/{channelId}/messages/{messageId}/read")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isCurrentProfileActiveParticipant(#channelId)")
     public ChatMessageResponseDto markRead(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @PathVariable UUID channelId,

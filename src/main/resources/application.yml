@@ -32,7 +32,8 @@ social:
     allowed-origins: ${SOCIAL_CORS_ALLOWED_ORIGINS:http://localhost:3000}
   security:
     jwt:
-      secret: ${SOCIAL_JWT_SECRET:dev-secret-change-me-dev-secret-change-me}
+      public-key: ${SOCIAL_JWT_PUBLIC_KEY:}
+      signing-kid: ${SOCIAL_JWT_SIGNING_KID:}
       issuer: ${SOCIAL_JWT_ISSUER:therapist-auth}
       audience: ${SOCIAL_JWT_AUDIENCE:social-features}
   websocket:

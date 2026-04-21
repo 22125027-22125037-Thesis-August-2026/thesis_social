@@ -7,6 +7,7 @@ import com.thesis.social.event.DomainEventPublisher;
 import com.thesis.social.event.EventTypes;
 import com.thesis.social.friend.dto.BlockResponseDto;
 import com.thesis.social.friend.dto.FriendDto;
+import com.thesis.social.friend.dto.FriendRequestDirection;
 import com.thesis.social.friend.dto.FriendRequestResponseDto;
 import com.thesis.social.friend.entity.FriendRequestEntity;
 import com.thesis.social.friend.entity.FriendRequestStatus;
@@ -19,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -146,6 +149,32 @@ public class FriendService {
                 return new FriendDto(friendProfileId);
             })
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FriendRequestResponseDto> listIncomingRequests(UUID profileId, int page, int size) {
+        return friendRequestRepository.findByReceiverIdAndStatusOrderByCreatedAtDesc(
+            profileId,
+            FriendRequestStatus.PENDING,
+            PageRequest.of(page, size)
+        ).map(this::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FriendRequestResponseDto> listOutgoingRequests(UUID profileId, int page, int size) {
+        return friendRequestRepository.findBySenderIdAndStatusOrderByCreatedAtDesc(
+            profileId,
+            FriendRequestStatus.PENDING,
+            PageRequest.of(page, size)
+        ).map(this::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FriendRequestResponseDto> listRequests(UUID profileId, FriendRequestDirection direction, int page, int size) {
+        if (direction == FriendRequestDirection.INCOMING) {
+            return listIncomingRequests(profileId, page, size);
+        }
+        return listOutgoingRequests(profileId, page, size);
     }
 
     @Transactional

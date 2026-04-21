@@ -10,6 +10,7 @@ import java.security.Principal;
 import java.util.UUID;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -24,12 +25,14 @@ public class ChatWebSocketController {
     }
 
     @MessageMapping("/chat.send")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isCurrentProfileActiveParticipant(#request.channelId())")
     public ChatMessageResponseDto sendMessage(@Valid @Payload SendMessageRequestDto request, Principal principal) {
         UUID profileId = principalAccess.profileIdFromPrincipal(principal);
         return chatService.sendMessage(profileId, request);
     }
 
     @MessageMapping("/chat.read")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isCurrentProfileActiveParticipant(#request.channelId())")
     public ChatMessageResponseDto markRead(@Valid @Payload MarkReadRequestDto request, Principal principal) {
         UUID profileId = principalAccess.profileIdFromPrincipal(principal);
         return chatService.markRead(profileId, request.channelId(), request.messageId());
