@@ -7,7 +7,9 @@ import java.util.UUID;
 public record FriendRequestResponseDto(
     UUID id,
     UUID senderId,
+    String senderUsername,
     UUID receiverId,
+    String receiverUsername,
     FriendRequestStatus status,
     OffsetDateTime createdAt,
     OffsetDateTime updatedAt

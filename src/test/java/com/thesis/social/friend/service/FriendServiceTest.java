@@ -17,6 +17,7 @@ import com.thesis.social.friend.entity.FriendRequestStatus;
 import com.thesis.social.friend.repository.FriendRequestRepository;
 import com.thesis.social.friend.repository.FriendshipRepository;
 import com.thesis.social.friend.repository.ProfileBlockRepository;
+import com.thesis.social.profile.service.ProfileDirectoryService;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,12 +41,20 @@ class FriendServiceTest {
     private ProfileBlockRepository profileBlockRepository;
     @Mock
     private DomainEventPublisher eventPublisher;
+    @Mock
+    private ProfileDirectoryService profileDirectoryService;
 
     private FriendService friendService;
 
     @BeforeEach
     void setUp() {
-        friendService = new FriendService(friendRequestRepository, friendshipRepository, profileBlockRepository, eventPublisher);
+        friendService = new FriendService(
+            friendRequestRepository,
+            friendshipRepository,
+            profileBlockRepository,
+            eventPublisher,
+            profileDirectoryService
+        );
     }
 
     @Test

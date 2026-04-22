@@ -22,6 +22,9 @@ public class ChatParticipantEntity extends AuditableEntity {
     @Column(name = "profile_id", nullable = false)
     private UUID profileId;
 
+    @Column(name = "profile_username")
+    private String profileUsername;
+
     public UUID getId() {
         return id;
     }
@@ -40,5 +43,13 @@ public class ChatParticipantEntity extends AuditableEntity {
 
     public void setProfileId(UUID profileId) {
         this.profileId = profileId;
+    }
+
+    public String getProfileUsername() {
+        return profileUsername;
+    }
+
+    public void setProfileUsername(String profileUsername) {
+        this.profileUsername = profileUsername;
     }
 }

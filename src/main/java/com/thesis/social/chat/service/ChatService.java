@@ -18,6 +18,7 @@ import com.thesis.social.event.DomainEventPublisher;
 import com.thesis.social.event.EventTypes;
 import com.thesis.social.friend.repository.FriendshipRepository;
 import com.thesis.social.friend.service.FriendService;
+import com.thesis.social.profile.service.ProfileDirectoryService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ public class ChatService {
     private final FriendshipRepository friendshipRepository;
     private final DomainEventPublisher eventPublisher;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final ProfileDirectoryService profileDirectoryService;
 
     public ChatService(ChatChannelRepository chatChannelRepository,
                        ChatParticipantRepository chatParticipantRepository,
@@ -51,7 +53,8 @@ public class ChatService {
                        FriendService friendService,
                        FriendshipRepository friendshipRepository,
                        DomainEventPublisher eventPublisher,
-                       SimpMessagingTemplate simpMessagingTemplate) {
+                       SimpMessagingTemplate simpMessagingTemplate,
+                       ProfileDirectoryService profileDirectoryService) {
         this.chatChannelRepository = chatChannelRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.messageRepository = messageRepository;
@@ -59,6 +62,7 @@ public class ChatService {
         this.friendshipRepository = friendshipRepository;
         this.eventPublisher = eventPublisher;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.profileDirectoryService = profileDirectoryService;
     }
 
     @Transactional
@@ -79,10 +83,18 @@ public class ChatService {
             ChatParticipantEntity participant = new ChatParticipantEntity();
             participant.setChannelId(savedChannel.getId());
             participant.setProfileId(participantId);
+            participant.setProfileUsername(profileDirectoryService.resolveUsername(participantId));
             chatParticipantRepository.save(participant);
         }
 
-        return toChannelDto(savedChannel, participants, requesterId, null, 0);
+        return toChannelDto(
+            savedChannel,
+            participants,
+            profileDirectoryService.resolveUsernames(participants),
+            requesterId,
+            null,
+            0
+        );
     }
 
     @Transactional(readOnly = true)
@@ -92,15 +104,26 @@ public class ChatService {
 
         return chatChannelRepository.findAllById(channelIds).stream()
             .map(channel -> {
-                Set<UUID> participantIds = chatParticipantRepository.findByChannelId(channel.getId())
+                List<ChatParticipantEntity> channelParticipants = chatParticipantRepository.findByChannelId(channel.getId());
+                Set<UUID> participantIds = channelParticipants
                     .stream()
                     .map(ChatParticipantEntity::getProfileId)
                     .collect(Collectors.toSet());
 
+                Map<UUID, String> participantUsernames = new HashMap<>();
+                for (ChatParticipantEntity participant : channelParticipants) {
+                    if (participant.getProfileUsername() != null) {
+                        participantUsernames.putIfAbsent(participant.getProfileId(), participant.getProfileUsername());
+                    }
+                }
+
+                Map<UUID, String> fallbackUsernames = profileDirectoryService.resolveUsernames(participantIds);
+                fallbackUsernames.forEach(participantUsernames::putIfAbsent);
+
                 Optional<MessageEntity> lastMessage = messageRepository.findFirstByChannelIdOrderByCreatedAtDesc(channel.getId());
                 long unreadCount = messageRepository.countByChannelIdAndIsReadFalseAndSenderIdNot(channel.getId(), profileId);
 
-                return toChannelDto(channel, participantIds, profileId, lastMessage.orElse(null), unreadCount);
+                return toChannelDto(channel, participantIds, participantUsernames, profileId, lastMessage.orElse(null), unreadCount);
             })
             .toList();
     }
@@ -131,6 +154,7 @@ public class ChatService {
         MessageEntity entity = new MessageEntity();
         entity.setChannelId(request.channelId());
         entity.setSenderId(senderId);
+        entity.setSenderUsername(profileDirectoryService.resolveUsername(senderId));
         entity.setContent(request.content().trim());
         entity.setRead(false);
         MessageEntity saved = messageRepository.save(entity);
@@ -196,6 +220,7 @@ public class ChatService {
     private ChatChannelResponseDto toChannelDto(
         ChatChannelEntity channel,
         Set<UUID> participantIds,
+        Map<UUID, String> participantUsernames,
         UUID currentProfileId,
         MessageEntity lastMessage,
         long unreadCount
@@ -213,6 +238,7 @@ public class ChatService {
             participantIds,
             channel.getCreatedAt(),
             counterpartProfileId,
+            counterpartProfileId == null ? null : participantUsernames.get(counterpartProfileId),
             null,
             null,
             lastMessagePreview,
@@ -224,10 +250,16 @@ public class ChatService {
     }
 
     private ChatMessageResponseDto toMessageDto(MessageEntity entity) {
+        String senderUsername = entity.getSenderUsername();
+        if (senderUsername == null) {
+            senderUsername = profileDirectoryService.resolveUsername(entity.getSenderId());
+        }
+
         return new ChatMessageResponseDto(
             entity.getId(),
             entity.getChannelId(),
             entity.getSenderId(),
+            senderUsername,
             entity.getContent(),
             entity.isRead(),
             entity.getCreatedAt(),

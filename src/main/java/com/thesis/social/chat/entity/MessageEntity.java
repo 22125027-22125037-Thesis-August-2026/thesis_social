@@ -22,6 +22,9 @@ public class MessageEntity extends AuditableEntity {
     @Column(name = "sender_id", nullable = false)
     private UUID senderId;
 
+    @Column(name = "sender_username")
+    private String senderUsername;
+
     @Column(name = "content", nullable = false, length = 4000)
     private String content;
 
@@ -46,6 +49,14 @@ public class MessageEntity extends AuditableEntity {
 
     public void setSenderId(UUID senderId) {
         this.senderId = senderId;
+    }
+
+    public String getSenderUsername() {
+        return senderUsername;
+    }
+
+    public void setSenderUsername(String senderUsername) {
+        this.senderUsername = senderUsername;
     }
 
     public String getContent() {

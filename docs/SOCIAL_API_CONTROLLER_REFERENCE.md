@@ -38,17 +38,35 @@ Reject a pending request (receiver only).
 ### GET `/api/v1/friends/requests/incoming?page=0&size=20`
 List pending incoming friend requests for current profile.
 
+Response items include:
+- `id`
+- `senderId`
+- `senderUsername`
+- `receiverId`
+- `receiverUsername`
+- `status`
+- `createdAt`
+- `updatedAt`
+
 ### GET `/api/v1/friends/requests/outgoing?page=0&size=20`
 List pending outgoing friend requests for current profile.
 
+Response items include the same fields as incoming requests, including `senderUsername` and `receiverUsername`.
+
 ### GET `/api/v1/friends/requests?direction=INCOMING|OUTGOING&page=0&size=20`
 List pending friend requests for current profile by direction.
+
+Response items include the same fields as incoming requests, including `senderUsername` and `receiverUsername`.
 
 ### DELETE `/api/v1/friends/{profileId}`
 Unfriend a profile.
 
 ### GET `/api/v1/friends`
 List current profile friends.
+
+Response items include:
+- `profileId`
+- `username`
 
 ### POST `/api/v1/friends/blocks/{profileId}`
 Block a profile.
@@ -81,6 +99,7 @@ Response items include UI-ready card fields:
 - `channelId`
 - `type`
 - `counterpartProfileId`
+- `counterpartUsername`
 - `counterpartDisplayName` (nullable)
 - `counterpartAvatarUrl` (nullable)
 - `lastMessagePreview` (nullable)
@@ -91,6 +110,16 @@ Response items include UI-ready card fields:
 
 ### GET `/api/v1/chats/channels/{channelId}/messages?page=0&size=20`
 Paginated channel messages (descending by `createdAt`).
+
+Response items include:
+- `id`
+- `channelId`
+- `senderId`
+- `senderUsername`
+- `content`
+- `read`
+- `createdAt`
+- `updatedAt`
 
 ### PATCH `/api/v1/chats/channels/{channelId}/messages/{messageId}/read`
 Mark message as read.

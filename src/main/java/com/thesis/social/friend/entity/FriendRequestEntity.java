@@ -21,8 +21,14 @@ public class FriendRequestEntity extends AuditableEntity {
     @Column(name = "sender_id", nullable = false)
     private UUID senderId;
 
+    @Column(name = "sender_username")
+    private String senderUsername;
+
     @Column(name = "receiver_id", nullable = false)
     private UUID receiverId;
+
+    @Column(name = "receiver_username")
+    private String receiverUsername;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -46,6 +52,22 @@ public class FriendRequestEntity extends AuditableEntity {
 
     public void setReceiverId(UUID receiverId) {
         this.receiverId = receiverId;
+    }
+
+    public String getSenderUsername() {
+        return senderUsername;
+    }
+
+    public void setSenderUsername(String senderUsername) {
+        this.senderUsername = senderUsername;
+    }
+
+    public String getReceiverUsername() {
+        return receiverUsername;
+    }
+
+    public void setReceiverUsername(String receiverUsername) {
+        this.receiverUsername = receiverUsername;
     }
 
     public FriendRequestStatus getStatus() {

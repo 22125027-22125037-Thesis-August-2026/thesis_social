@@ -7,6 +7,7 @@ public record ChatMessageResponseDto(
     UUID id,
     UUID channelId,
     UUID senderId,
+    String senderUsername,
     String content,
     boolean read,
     OffsetDateTime createdAt,

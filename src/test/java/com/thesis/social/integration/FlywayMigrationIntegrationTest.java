@@ -39,6 +39,7 @@ class FlywayMigrationIntegrationTest {
             assertTrue(tableExists(stmt, "chat_channels"));
             assertTrue(tableExists(stmt, "chat_participants"));
             assertTrue(tableExists(stmt, "messages"));
+            assertTrue(tableExists(stmt, "profile_directory"));
         }
     }
 

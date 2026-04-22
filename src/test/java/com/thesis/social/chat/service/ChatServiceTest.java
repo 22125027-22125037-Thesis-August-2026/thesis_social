@@ -21,6 +21,7 @@ import com.thesis.social.event.DomainEventPublisher;
 import com.thesis.social.event.EventTypes;
 import com.thesis.social.friend.repository.FriendshipRepository;
 import com.thesis.social.friend.service.FriendService;
+import com.thesis.social.profile.service.ProfileDirectoryService;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ class ChatServiceTest {
     private DomainEventPublisher eventPublisher;
     @Mock
     private SimpMessagingTemplate simpMessagingTemplate;
+    @Mock
+    private ProfileDirectoryService profileDirectoryService;
 
     private ChatService chatService;
 
@@ -65,7 +68,8 @@ class ChatServiceTest {
             friendService,
             friendshipRepository,
             eventPublisher,
-            simpMessagingTemplate
+            simpMessagingTemplate,
+            profileDirectoryService
         );
     }
 
@@ -89,6 +93,7 @@ class ChatServiceTest {
         when(chatParticipantRepository.existsByChannelIdAndProfileId(channelId, senderId)).thenReturn(true);
         when(chatParticipantRepository.findByChannelId(channelId)).thenReturn(List.of(senderParticipant, receiverParticipant));
         when(friendService.isBlockedEitherDirection(senderId, receiverId)).thenReturn(false);
+        when(profileDirectoryService.resolveUsername(senderId)).thenReturn("sender_dev");
         when(messageRepository.save(any(MessageEntity.class))).thenAnswer(invocation -> {
             MessageEntity saved = invocation.getArgument(0);
             ReflectionTestUtils.setField(saved, "id", messageId);
@@ -101,6 +106,7 @@ class ChatServiceTest {
 
         assertEquals(channelId, response.channelId());
         assertEquals(senderId, response.senderId());
+        assertEquals("sender_dev", response.senderUsername());
         assertEquals("hello", response.content());
         verify(simpMessagingTemplate).convertAndSendToUser(eq(receiverId.toString()), eq("/queue/messages"), any(ChatMessageResponseDto.class));
         verify(eventPublisher).publish(eq(EventTypes.MESSAGE_SENT), org.mockito.ArgumentMatchers.<Map<String, Object>>any());
@@ -204,6 +210,7 @@ class ChatServiceTest {
         ChatParticipantEntity counterpartParticipant = new ChatParticipantEntity();
         counterpartParticipant.setChannelId(channelId);
         counterpartParticipant.setProfileId(counterpartId);
+        counterpartParticipant.setProfileUsername("counterpart_dev");
 
         ChatChannelEntity channel = new ChatChannelEntity();
         ReflectionTestUtils.setField(channel, "id", channelId);
@@ -228,6 +235,7 @@ class ChatServiceTest {
         assertEquals(1, response.size());
         assertEquals(channelId, response.get(0).channelId());
         assertEquals(counterpartId, response.get(0).counterpartProfileId());
+        assertEquals("counterpart_dev", response.get(0).counterpartUsername());
         assertEquals("latest", response.get(0).lastMessagePreview());
         assertEquals(now, response.get(0).lastMessageAt());
         assertEquals(3L, response.get(0).unreadCount());

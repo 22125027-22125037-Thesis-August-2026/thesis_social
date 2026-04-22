@@ -16,6 +16,7 @@ import com.thesis.social.friend.entity.ProfileBlockEntity;
 import com.thesis.social.friend.repository.FriendRequestRepository;
 import com.thesis.social.friend.repository.FriendshipRepository;
 import com.thesis.social.friend.repository.ProfileBlockRepository;
+import com.thesis.social.profile.service.ProfileDirectoryService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +33,18 @@ public class FriendService {
     private final FriendshipRepository friendshipRepository;
     private final ProfileBlockRepository profileBlockRepository;
     private final DomainEventPublisher domainEventPublisher;
+    private final ProfileDirectoryService profileDirectoryService;
 
     public FriendService(FriendRequestRepository friendRequestRepository,
                          FriendshipRepository friendshipRepository,
                          ProfileBlockRepository profileBlockRepository,
-                         DomainEventPublisher domainEventPublisher) {
+                         DomainEventPublisher domainEventPublisher,
+                         ProfileDirectoryService profileDirectoryService) {
         this.friendRequestRepository = friendRequestRepository;
         this.friendshipRepository = friendshipRepository;
         this.profileBlockRepository = profileBlockRepository;
         this.domainEventPublisher = domainEventPublisher;
+        this.profileDirectoryService = profileDirectoryService;
     }
 
     @Transactional
@@ -60,7 +64,9 @@ public class FriendService {
 
         FriendRequestEntity request = new FriendRequestEntity();
         request.setSenderId(senderId);
+        request.setSenderUsername(profileDirectoryService.resolveUsername(senderId));
         request.setReceiverId(receiverId);
+        request.setReceiverUsername(profileDirectoryService.resolveUsername(receiverId));
         request.setStatus(FriendRequestStatus.PENDING);
 
         FriendRequestEntity saved = friendRequestRepository.save(request);
@@ -105,6 +111,13 @@ public class FriendService {
             FriendshipEntity friendshipEntity = new FriendshipEntity();
             friendshipEntity.setProfileId1(pair.first());
             friendshipEntity.setProfileId2(pair.second());
+            if (pair.first().equals(savedRequest.getSenderId())) {
+                friendshipEntity.setProfileUsername1(savedRequest.getSenderUsername());
+                friendshipEntity.setProfileUsername2(savedRequest.getReceiverUsername());
+            } else {
+                friendshipEntity.setProfileUsername1(savedRequest.getReceiverUsername());
+                friendshipEntity.setProfileUsername2(savedRequest.getSenderUsername());
+            }
             friendshipRepository.save(friendshipEntity);
         }
 
@@ -146,7 +159,13 @@ public class FriendService {
             .map(friendship -> {
                 UUID friendProfileId = friendship.getProfileId1().equals(profileId)
                     ? friendship.getProfileId2() : friendship.getProfileId1();
-                return new FriendDto(friendProfileId);
+                String friendUsername = friendship.getProfileId1().equals(profileId)
+                    ? friendship.getProfileUsername2()
+                    : friendship.getProfileUsername1();
+                if (friendUsername == null) {
+                    friendUsername = profileDirectoryService.resolveUsername(friendProfileId);
+                }
+                return new FriendDto(friendProfileId, friendUsername);
             })
             .toList();
     }
@@ -187,7 +206,9 @@ public class FriendService {
 
         ProfileBlockEntity block = new ProfileBlockEntity();
         block.setBlockerId(blockerId);
+        block.setBlockerUsername(profileDirectoryService.resolveUsername(blockerId));
         block.setBlockedId(blockedId);
+        block.setBlockedUsername(profileDirectoryService.resolveUsername(blockedId));
         ProfileBlockEntity saved = profileBlockRepository.save(block);
 
         Pair pair = sortedPair(blockerId, blockedId);
@@ -222,10 +243,21 @@ public class FriendService {
     }
 
     private FriendRequestResponseDto toDto(FriendRequestEntity entity) {
+        String senderUsername = entity.getSenderUsername();
+        if (senderUsername == null) {
+            senderUsername = profileDirectoryService.resolveUsername(entity.getSenderId());
+        }
+        String receiverUsername = entity.getReceiverUsername();
+        if (receiverUsername == null) {
+            receiverUsername = profileDirectoryService.resolveUsername(entity.getReceiverId());
+        }
+
         return new FriendRequestResponseDto(
             entity.getId(),
             entity.getSenderId(),
+            senderUsername,
             entity.getReceiverId(),
+            receiverUsername,
             entity.getStatus(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()

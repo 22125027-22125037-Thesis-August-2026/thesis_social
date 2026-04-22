@@ -13,6 +13,7 @@ public record ChatChannelResponseDto(
     Set<UUID> participantIds,
     OffsetDateTime createdAt,
     UUID counterpartProfileId,
+    String counterpartUsername,
     String counterpartDisplayName,
     String counterpartAvatarUrl,
     String lastMessagePreview,
