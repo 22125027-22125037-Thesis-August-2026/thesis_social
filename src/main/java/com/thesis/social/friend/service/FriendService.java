@@ -64,9 +64,7 @@ public class FriendService {
 
         FriendRequestEntity request = new FriendRequestEntity();
         request.setSenderId(senderId);
-        request.setSenderUsername(profileDirectoryService.resolveUsername(senderId));
         request.setReceiverId(receiverId);
-        request.setReceiverUsername(profileDirectoryService.resolveUsername(receiverId));
         request.setStatus(FriendRequestStatus.PENDING);
 
         FriendRequestEntity saved = friendRequestRepository.save(request);
@@ -111,13 +109,7 @@ public class FriendService {
             FriendshipEntity friendshipEntity = new FriendshipEntity();
             friendshipEntity.setProfileId1(pair.first());
             friendshipEntity.setProfileId2(pair.second());
-            if (pair.first().equals(savedRequest.getSenderId())) {
-                friendshipEntity.setProfileUsername1(savedRequest.getSenderUsername());
-                friendshipEntity.setProfileUsername2(savedRequest.getReceiverUsername());
-            } else {
-                friendshipEntity.setProfileUsername1(savedRequest.getReceiverUsername());
-                friendshipEntity.setProfileUsername2(savedRequest.getSenderUsername());
-            }
+            
             friendshipRepository.save(friendshipEntity);
         }
 
@@ -159,13 +151,8 @@ public class FriendService {
             .map(friendship -> {
                 UUID friendProfileId = friendship.getProfileId1().equals(profileId)
                     ? friendship.getProfileId2() : friendship.getProfileId1();
-                String friendUsername = friendship.getProfileId1().equals(profileId)
-                    ? friendship.getProfileUsername2()
-                    : friendship.getProfileUsername1();
-                if (friendUsername == null) {
-                    friendUsername = profileDirectoryService.resolveUsername(friendProfileId);
-                }
-                return new FriendDto(friendProfileId, friendUsername);
+                String friendProfileName = profileDirectoryService.resolveProfileName(friendProfileId);
+                return new FriendDto(friendProfileId, friendProfileName);
             })
             .toList();
     }
@@ -206,9 +193,7 @@ public class FriendService {
 
         ProfileBlockEntity block = new ProfileBlockEntity();
         block.setBlockerId(blockerId);
-        block.setBlockerUsername(profileDirectoryService.resolveUsername(blockerId));
         block.setBlockedId(blockedId);
-        block.setBlockedUsername(profileDirectoryService.resolveUsername(blockedId));
         ProfileBlockEntity saved = profileBlockRepository.save(block);
 
         Pair pair = sortedPair(blockerId, blockedId);
@@ -243,21 +228,15 @@ public class FriendService {
     }
 
     private FriendRequestResponseDto toDto(FriendRequestEntity entity) {
-        String senderUsername = entity.getSenderUsername();
-        if (senderUsername == null) {
-            senderUsername = profileDirectoryService.resolveUsername(entity.getSenderId());
-        }
-        String receiverUsername = entity.getReceiverUsername();
-        if (receiverUsername == null) {
-            receiverUsername = profileDirectoryService.resolveUsername(entity.getReceiverId());
-        }
+        String senderProfileName = profileDirectoryService.resolveProfileName(entity.getSenderId());
+        String receiverProfileName = profileDirectoryService.resolveProfileName(entity.getReceiverId());
 
         return new FriendRequestResponseDto(
             entity.getId(),
             entity.getSenderId(),
-            senderUsername,
+            senderProfileName,
             entity.getReceiverId(),
-            receiverUsername,
+            receiverProfileName,
             entity.getStatus(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()

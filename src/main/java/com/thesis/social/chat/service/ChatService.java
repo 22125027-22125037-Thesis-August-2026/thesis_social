@@ -83,14 +83,13 @@ public class ChatService {
             ChatParticipantEntity participant = new ChatParticipantEntity();
             participant.setChannelId(savedChannel.getId());
             participant.setProfileId(participantId);
-            participant.setProfileUsername(profileDirectoryService.resolveUsername(participantId));
             chatParticipantRepository.save(participant);
         }
 
         return toChannelDto(
             savedChannel,
             participants,
-            profileDirectoryService.resolveUsernames(participants),
+            profileDirectoryService.resolveProfileNames(participants),
             requesterId,
             null,
             0
@@ -110,20 +109,13 @@ public class ChatService {
                     .map(ChatParticipantEntity::getProfileId)
                     .collect(Collectors.toSet());
 
-                Map<UUID, String> participantUsernames = new HashMap<>();
-                for (ChatParticipantEntity participant : channelParticipants) {
-                    if (participant.getProfileUsername() != null) {
-                        participantUsernames.putIfAbsent(participant.getProfileId(), participant.getProfileUsername());
-                    }
-                }
-
-                Map<UUID, String> fallbackUsernames = profileDirectoryService.resolveUsernames(participantIds);
-                fallbackUsernames.forEach(participantUsernames::putIfAbsent);
-
+                Map<UUID, String> participantProfileNames = profileDirectoryService.resolveProfileNames(participantIds);
+                
                 Optional<MessageEntity> lastMessage = messageRepository.findFirstByChannelIdOrderByCreatedAtDesc(channel.getId());
+                
                 long unreadCount = messageRepository.countByChannelIdAndIsReadFalseAndSenderIdNot(channel.getId(), profileId);
 
-                return toChannelDto(channel, participantIds, participantUsernames, profileId, lastMessage.orElse(null), unreadCount);
+                return toChannelDto(channel, participantIds, participantProfileNames, profileId, lastMessage.orElse(null), unreadCount);
             })
             .toList();
     }
@@ -154,7 +146,6 @@ public class ChatService {
         MessageEntity entity = new MessageEntity();
         entity.setChannelId(request.channelId());
         entity.setSenderId(senderId);
-        entity.setSenderUsername(profileDirectoryService.resolveUsername(senderId));
         entity.setContent(request.content().trim());
         entity.setRead(false);
         MessageEntity saved = messageRepository.save(entity);
@@ -250,16 +241,13 @@ public class ChatService {
     }
 
     private ChatMessageResponseDto toMessageDto(MessageEntity entity) {
-        String senderUsername = entity.getSenderUsername();
-        if (senderUsername == null) {
-            senderUsername = profileDirectoryService.resolveUsername(entity.getSenderId());
-        }
+        String senderProfileName = profileDirectoryService.resolveProfileName(entity.getSenderId());
 
         return new ChatMessageResponseDto(
             entity.getId(),
             entity.getChannelId(),
             entity.getSenderId(),
-            senderUsername,
+            senderProfileName,
             entity.getContent(),
             entity.isRead(),
             entity.getCreatedAt(),

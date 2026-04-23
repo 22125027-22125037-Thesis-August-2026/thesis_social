@@ -93,7 +93,7 @@ class ChatServiceTest {
         when(chatParticipantRepository.existsByChannelIdAndProfileId(channelId, senderId)).thenReturn(true);
         when(chatParticipantRepository.findByChannelId(channelId)).thenReturn(List.of(senderParticipant, receiverParticipant));
         when(friendService.isBlockedEitherDirection(senderId, receiverId)).thenReturn(false);
-        when(profileDirectoryService.resolveUsername(senderId)).thenReturn("sender_dev");
+        when(profileDirectoryService.resolveProfileName(senderId)).thenReturn("sender_dev");
         when(messageRepository.save(any(MessageEntity.class))).thenAnswer(invocation -> {
             MessageEntity saved = invocation.getArgument(0);
             ReflectionTestUtils.setField(saved, "id", messageId);
@@ -210,7 +210,6 @@ class ChatServiceTest {
         ChatParticipantEntity counterpartParticipant = new ChatParticipantEntity();
         counterpartParticipant.setChannelId(channelId);
         counterpartParticipant.setProfileId(counterpartId);
-        counterpartParticipant.setProfileUsername("counterpart_dev");
 
         ChatChannelEntity channel = new ChatChannelEntity();
         ReflectionTestUtils.setField(channel, "id", channelId);

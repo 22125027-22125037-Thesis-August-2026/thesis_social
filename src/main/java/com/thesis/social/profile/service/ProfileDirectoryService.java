@@ -19,14 +19,14 @@ public class ProfileDirectoryService {
     }
 
     @Transactional(readOnly = true)
-    public String resolveUsername(UUID profileId) {
+    public String resolveProfileName(UUID profileId) {
         return profileDirectoryRepository.findById(profileId)
-            .map(entity -> entity.getUsername())
-            .orElse(null);
+            .map(entity -> entity.getProfileName())
+            .orElse("Unknown User");
     }
 
     @Transactional(readOnly = true)
-    public Map<UUID, String> resolveUsernames(Set<UUID> profileIds) {
+    public Map<UUID, String> resolveProfileNames(Set<UUID> profileIds) {
         if (profileIds == null || profileIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -34,7 +34,7 @@ public class ProfileDirectoryService {
         return profileDirectoryRepository.findAllById(profileIds).stream()
             .collect(Collectors.toMap(
                 entity -> entity.getProfileId(),
-                entity -> entity.getUsername()
+                entity -> entity.getProfileName()
             ));
     }
 }
