@@ -41,9 +41,9 @@ List pending incoming friend requests for current profile.
 Response items include:
 - `id`
 - `senderId`
-- `senderUsername`
+- `senderProfilename`
 - `receiverId`
-- `receiverUsername`
+- `receiverProfilename`
 - `status`
 - `createdAt`
 - `updatedAt`
@@ -51,12 +51,12 @@ Response items include:
 ### GET `/api/v1/friends/requests/outgoing?page=0&size=20`
 List pending outgoing friend requests for current profile.
 
-Response items include the same fields as incoming requests, including `senderUsername` and `receiverUsername`.
+Response items include the same fields as incoming requests, including `senderProfilename` and `receiverProfilename`.
 
 ### GET `/api/v1/friends/requests?direction=INCOMING|OUTGOING&page=0&size=20`
 List pending friend requests for current profile by direction.
 
-Response items include the same fields as incoming requests, including `senderUsername` and `receiverUsername`.
+Response items include the same fields as incoming requests, including `senderProfilename` and `receiverUProfilename`.
 
 ### DELETE `/api/v1/friends/{profileId}`
 Unfriend a profile.
@@ -66,7 +66,7 @@ List current profile friends.
 
 Response items include:
 - `profileId`
-- `username`
+- `profilename`
 
 ### POST `/api/v1/friends/blocks/{profileId}`
 Block a profile.
@@ -99,7 +99,7 @@ Response items include UI-ready card fields:
 - `channelId`
 - `type`
 - `counterpartProfileId`
-- `counterpartUsername`
+- `counterpartProfilename`
 - `counterpartDisplayName` (nullable)
 - `counterpartAvatarUrl` (nullable)
 - `lastMessagePreview` (nullable)
@@ -115,7 +115,7 @@ Response items include:
 - `id`
 - `channelId`
 - `senderId`
-- `senderUsername`
+- `senderProfilename`
 - `content`
 - `read`
 - `createdAt`
