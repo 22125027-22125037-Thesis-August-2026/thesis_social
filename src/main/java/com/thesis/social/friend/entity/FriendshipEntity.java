@@ -19,14 +19,10 @@ public class FriendshipEntity extends AuditableEntity {
     @Column(name = "profile_id_1", nullable = false)
     private UUID profileId1;
 
-    @Column(name = "profile_username_1")
-    private String profileUsername1;
 
     @Column(name = "profile_id_2", nullable = false)
     private UUID profileId2;
 
-    @Column(name = "profile_username_2")
-    private String profileUsername2;
 
     public UUID getId() {
         return id;
@@ -48,19 +44,4 @@ public class FriendshipEntity extends AuditableEntity {
         this.profileId2 = profileId2;
     }
 
-    public String getProfileUsername1() {
-        return profileUsername1;
-    }
-
-    public void setProfileUsername1(String profileUsername1) {
-        this.profileUsername1 = profileUsername1;
-    }
-
-    public String getProfileUsername2() {
-        return profileUsername2;
-    }
-
-    public void setProfileUsername2(String profileUsername2) {
-        this.profileUsername2 = profileUsername2;
-    }
 }

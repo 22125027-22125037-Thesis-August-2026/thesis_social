@@ -14,18 +14,11 @@ public class ProfileDirectoryEntity {
     @Column(name = "profile_id", nullable = false)
     private UUID profileId;
 
-    @Column(name = "username", nullable = false)
-    private String username;
-
     @Column(name = "profile_name", nullable = false)
     private String profileName;
 
     public UUID getProfileId() {
         return profileId;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public String getProfileName() {

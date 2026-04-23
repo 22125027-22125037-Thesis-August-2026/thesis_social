@@ -19,14 +19,10 @@ public class ProfileBlockEntity extends AuditableEntity {
     @Column(name = "blocker_id", nullable = false)
     private UUID blockerId;
 
-    @Column(name = "blocker_username")
-    private String blockerUsername;
 
     @Column(name = "blocked_id", nullable = false)
     private UUID blockedId;
 
-    @Column(name = "blocked_username")
-    private String blockedUsername;
 
     public UUID getId() {
         return id;
@@ -48,19 +44,4 @@ public class ProfileBlockEntity extends AuditableEntity {
         this.blockedId = blockedId;
     }
 
-    public String getBlockerUsername() {
-        return blockerUsername;
-    }
-
-    public void setBlockerUsername(String blockerUsername) {
-        this.blockerUsername = blockerUsername;
-    }
-
-    public String getBlockedUsername() {
-        return blockedUsername;
-    }
-
-    public void setBlockedUsername(String blockedUsername) {
-        this.blockedUsername = blockedUsername;
-    }
 }
