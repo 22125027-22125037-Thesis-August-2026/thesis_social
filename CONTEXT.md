@@ -41,7 +41,7 @@ Envelope shape:
 ```
 
 ## STOMP WebSocket Contract
-
+## Need to learn more about this
 Connection endpoint:
 - `ws://<host>:<port>/ws` (path configurable via `SOCIAL_WS_ENDPOINT`)
 
