@@ -94,4 +94,11 @@ public class AccessGuard {
         }
         return profileId.equals(request.getSenderId()) || profileId.equals(request.getReceiverId());
     }
+
+    public boolean isProfileActiveParticipant(UUID channelId, UUID profileId) {
+        if (channelId == null || profileId == null) {
+            return false;
+        }
+        return chatParticipantRepository.existsByChannelIdAndProfileId(channelId, profileId);
+    }
 }
