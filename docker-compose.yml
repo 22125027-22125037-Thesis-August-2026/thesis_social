@@ -68,7 +68,7 @@ services:
       SOCIAL_RABBIT_HOST: ${SOCIAL_RABBIT_HOST:-rabbitmq}
       SOCIAL_STOMP_RELAY_HOST: ${SOCIAL_STOMP_RELAY_HOST:-rabbitmq}
     ports:
-      - "${SOCIAL_APP_PORT:-8083}:8080"
+      - "${SOCIAL_APP_PORT:-8083}:${SOCIAL_APP_PORT:-8083}"
     depends_on:
       postgres:
         condition: service_healthy
