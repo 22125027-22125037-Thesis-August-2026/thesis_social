@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${SOCIAL_DB_USER:-social}
       POSTGRES_PASSWORD: ${SOCIAL_DB_PASSWORD:-social}
     ports:
-      - "${SOCIAL_DB_PORT:-5435}:5432"
+      - "${SOCIAL_DB_EXTERNAL_PORT:-5435}:5432"
     volumes:
       - social_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -45,7 +45,7 @@ services:
       "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp;
       rabbitmq-server"
     ports:
-      - "${SOCIAL_RABBIT_PORT:-5674}:5672"
+      - "${SOCIAL_RABBIT_EXTERNAL_PORT:-5674}:5672"
       - "${SOCIAL_RABBIT_MGMT_PORT:-15674}:15672"
       - "${SOCIAL_STOMP_RELAY_PORT:-61613}:61613"
       - "${SOCIAL_RABBIT_WEB_STOMP_PORT:-15675}:15674"
