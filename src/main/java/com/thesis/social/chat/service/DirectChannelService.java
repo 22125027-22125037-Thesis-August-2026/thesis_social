@@ -5,6 +5,7 @@ import com.thesis.social.chat.entity.ChatChannelType;
 import com.thesis.social.chat.entity.ChatParticipantEntity;
 import com.thesis.social.chat.repository.ChatChannelRepository;
 import com.thesis.social.chat.repository.ChatParticipantRepository;
+import com.thesis.social.common.util.UuidOrdering;
 import com.thesis.social.friend.entity.FriendshipEntity;
 import com.thesis.social.friend.repository.FriendshipRepository;
 import java.util.List;
@@ -54,8 +55,9 @@ public class DirectChannelService {
     }
 
     private UUID resolveFriendshipReferenceId(UUID profileA, UUID profileB) {
-        UUID first = profileA.compareTo(profileB) < 0 ? profileA : profileB;
-        UUID second = profileA.compareTo(profileB) < 0 ? profileB : profileA;
+        boolean aFirst = UuidOrdering.UNSIGNED.compare(profileA, profileB) < 0;
+        UUID first = aFirst ? profileA : profileB;
+        UUID second = aFirst ? profileB : profileA;
         return friendshipRepository.findByProfileId1AndProfileId2(first, second)
             .map(FriendshipEntity::getId)
             .orElse(null);

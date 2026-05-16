@@ -14,6 +14,7 @@ import com.thesis.social.chat.repository.MessageRepository;
 import com.thesis.social.common.exception.ConflictException;
 import com.thesis.social.common.exception.ForbiddenException;
 import com.thesis.social.common.exception.NotFoundException;
+import com.thesis.social.common.util.UuidOrdering;
 import com.thesis.social.event.DomainEventPublisher;
 import com.thesis.social.event.EventTypes;
 import com.thesis.social.friend.repository.FriendshipRepository;
@@ -265,7 +266,7 @@ public class ChatService {
     }
 
     private Pair sortedPair(UUID first, UUID second) {
-        if (first.compareTo(second) < 0) {
+        if (UuidOrdering.UNSIGNED.compare(first, second) < 0) {
             return new Pair(first, second);
         }
         return new Pair(second, first);
