@@ -46,6 +46,7 @@ public class ChatService {
     private final DomainEventPublisher eventPublisher;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ProfileDirectoryService profileDirectoryService;
+    private final DirectChannelService directChannelService;
 
     public ChatService(ChatChannelRepository chatChannelRepository,
                        ChatParticipantRepository chatParticipantRepository,
@@ -54,7 +55,8 @@ public class ChatService {
                        FriendshipRepository friendshipRepository,
                        DomainEventPublisher eventPublisher,
                        SimpMessagingTemplate simpMessagingTemplate,
-                       ProfileDirectoryService profileDirectoryService) {
+                       ProfileDirectoryService profileDirectoryService,
+                       DirectChannelService directChannelService) {
         this.chatChannelRepository = chatChannelRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.messageRepository = messageRepository;
@@ -63,6 +65,7 @@ public class ChatService {
         this.eventPublisher = eventPublisher;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.profileDirectoryService = profileDirectoryService;
+        this.directChannelService = directChannelService;
     }
 
     @Transactional
@@ -70,20 +73,26 @@ public class ChatService {
         Set<UUID> participants = request.participantIds().stream().collect(Collectors.toSet());
         participants.add(requesterId);
 
+        ChatChannelEntity savedChannel;
         if (request.type() == ChatChannelType.DIRECT_FRIEND) {
             validateDirectFriendChannel(participants);
-        }
+            UUID other = participants.stream()
+                .filter(id -> !id.equals(requesterId))
+                .findFirst()
+                .orElseThrow();
+            savedChannel = directChannelService.ensureDirectFriendChannel(requesterId, other);
+        } else {
+            ChatChannelEntity channel = new ChatChannelEntity();
+            channel.setType(request.type());
+            channel.setReferenceId(request.referenceId());
+            savedChannel = chatChannelRepository.save(channel);
 
-        ChatChannelEntity channel = new ChatChannelEntity();
-        channel.setType(request.type());
-        channel.setReferenceId(request.referenceId());
-        ChatChannelEntity savedChannel = chatChannelRepository.save(channel);
-
-        for (UUID participantId : participants) {
-            ChatParticipantEntity participant = new ChatParticipantEntity();
-            participant.setChannelId(savedChannel.getId());
-            participant.setProfileId(participantId);
-            chatParticipantRepository.save(participant);
+            for (UUID participantId : participants) {
+                ChatParticipantEntity participant = new ChatParticipantEntity();
+                participant.setChannelId(savedChannel.getId());
+                participant.setProfileId(participantId);
+                chatParticipantRepository.save(participant);
+            }
         }
 
         return toChannelDto(

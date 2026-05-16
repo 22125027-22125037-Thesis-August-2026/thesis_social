@@ -1,5 +1,6 @@
 package com.thesis.social.friend.service;
 
+import com.thesis.social.chat.service.DirectChannelService;
 import com.thesis.social.common.exception.ConflictException;
 import com.thesis.social.common.exception.ForbiddenException;
 import com.thesis.social.common.exception.NotFoundException;
@@ -34,17 +35,20 @@ public class FriendService {
     private final ProfileBlockRepository profileBlockRepository;
     private final DomainEventPublisher domainEventPublisher;
     private final ProfileDirectoryService profileDirectoryService;
+    private final DirectChannelService directChannelService;
 
     public FriendService(FriendRequestRepository friendRequestRepository,
                          FriendshipRepository friendshipRepository,
                          ProfileBlockRepository profileBlockRepository,
                          DomainEventPublisher domainEventPublisher,
-                         ProfileDirectoryService profileDirectoryService) {
+                         ProfileDirectoryService profileDirectoryService,
+                         DirectChannelService directChannelService) {
         this.friendRequestRepository = friendRequestRepository;
         this.friendshipRepository = friendshipRepository;
         this.profileBlockRepository = profileBlockRepository;
         this.domainEventPublisher = domainEventPublisher;
         this.profileDirectoryService = profileDirectoryService;
+        this.directChannelService = directChannelService;
     }
 
     @Transactional
@@ -115,9 +119,11 @@ public class FriendService {
             FriendshipEntity friendshipEntity = new FriendshipEntity();
             friendshipEntity.setProfileId1(pair.first());
             friendshipEntity.setProfileId2(pair.second());
-            
+
             friendshipRepository.save(friendshipEntity);
         }
+
+        directChannelService.ensureDirectFriendChannel(request.getSenderId(), request.getReceiverId());
 
         publishEvent(EventTypes.FRIEND_REQUEST_ACCEPTED, Map.of(
             "friendRequestId", savedRequest.getId(),
@@ -148,6 +154,7 @@ public class FriendService {
         FriendshipEntity friendship = friendshipRepository.findByProfileId1AndProfileId2(pair.first(), pair.second())
             .orElseThrow(() -> new NotFoundException("Friendship not found"));
         friendshipRepository.delete(friendship);
+        directChannelService.removeDirectFriendChannel(profileId, otherProfileId);
     }
 
     @Transactional(readOnly = true)
@@ -205,6 +212,7 @@ public class FriendService {
         Pair pair = sortedPair(blockerId, blockedId);
         friendshipRepository.findByProfileId1AndProfileId2(pair.first(), pair.second())
             .ifPresent(friendshipRepository::delete);
+        directChannelService.removeDirectFriendChannel(blockerId, blockedId);
 
         return new BlockResponseDto(saved.getBlockerId(), saved.getBlockedId(), saved.getCreatedAt());
     }

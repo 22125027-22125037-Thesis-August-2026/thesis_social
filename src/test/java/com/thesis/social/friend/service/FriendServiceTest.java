@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.thesis.social.chat.service.DirectChannelService;
 import com.thesis.social.common.exception.ForbiddenException;
 import com.thesis.social.event.DomainEventPublisher;
 import com.thesis.social.event.EventTypes;
@@ -43,6 +44,8 @@ class FriendServiceTest {
     private DomainEventPublisher eventPublisher;
     @Mock
     private ProfileDirectoryService profileDirectoryService;
+    @Mock
+    private DirectChannelService directChannelService;
 
     private FriendService friendService;
 
@@ -53,7 +56,8 @@ class FriendServiceTest {
             friendshipRepository,
             profileBlockRepository,
             eventPublisher,
-            profileDirectoryService
+            profileDirectoryService,
+            directChannelService
         );
     }
 
@@ -88,6 +92,7 @@ class FriendServiceTest {
 
         assertEquals(FriendRequestStatus.ACCEPTED, response.status());
         verify(friendshipRepository).save(any());
+        verify(directChannelService).ensureDirectFriendChannel(sender, receiver);
         verify(eventPublisher).publish(eq(EventTypes.FRIEND_REQUEST_ACCEPTED), org.mockito.ArgumentMatchers.<Map<String, Object>>any());
     }
 
@@ -131,6 +136,26 @@ class FriendServiceTest {
 
         FriendRequestResponseDto response = friendService.rejectRequest(receiver, requestId);
         assertEquals(FriendRequestStatus.REJECTED, response.status());
+    }
+
+    @Test
+    void unfriendShouldDeleteFriendshipAndDirectChannel() {
+        UUID profile = UUID.randomUUID();
+        UUID other = UUID.randomUUID();
+        UUID first = profile.compareTo(other) < 0 ? profile : other;
+        UUID second = profile.compareTo(other) < 0 ? other : profile;
+
+        com.thesis.social.friend.entity.FriendshipEntity friendship = new com.thesis.social.friend.entity.FriendshipEntity();
+        ReflectionTestUtils.setField(friendship, "id", UUID.randomUUID());
+        friendship.setProfileId1(first);
+        friendship.setProfileId2(second);
+
+        when(friendshipRepository.findByProfileId1AndProfileId2(first, second)).thenReturn(Optional.of(friendship));
+
+        friendService.unfriend(profile, other);
+
+        verify(friendshipRepository).delete(friendship);
+        verify(directChannelService).removeDirectFriendChannel(profile, other);
     }
 
     @Test

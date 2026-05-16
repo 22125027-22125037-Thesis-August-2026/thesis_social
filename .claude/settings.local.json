@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew --no-daemon test --tests \"com.thesis.social.friend.service.FriendServiceTest\")"
+    ]
+  }
+}

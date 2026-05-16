@@ -56,6 +56,8 @@ class ChatServiceTest {
     private SimpMessagingTemplate simpMessagingTemplate;
     @Mock
     private ProfileDirectoryService profileDirectoryService;
+    @Mock
+    private DirectChannelService directChannelService;
 
     private ChatService chatService;
 
@@ -69,7 +71,8 @@ class ChatServiceTest {
             friendshipRepository,
             eventPublisher,
             simpMessagingTemplate,
-            profileDirectoryService
+            profileDirectoryService,
+            directChannelService
         );
     }
 
