@@ -1,5 +1,6 @@
 package com.thesis.social.profile.service;
 
+import com.thesis.social.common.exception.NotFoundException;
 import com.thesis.social.profile.repository.ProfileDirectoryRepository;
 import java.util.Collections;
 import java.util.Map;
@@ -23,6 +24,13 @@ public class ProfileDirectoryService {
         return profileDirectoryRepository.findById(profileId)
             .map(entity -> entity.getProfileName())
             .orElse("Unknown User");
+    }
+
+    @Transactional(readOnly = true)
+    public UUID resolveProfileIdByEmail(String email) {
+        return profileDirectoryRepository.findByEmail(email)
+            .map(entity -> entity.getProfileId())
+            .orElseThrow(() -> new NotFoundException("No profile registered for that email"));
     }
 
     @Transactional(readOnly = true)

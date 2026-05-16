@@ -48,6 +48,12 @@ public class FriendService {
     }
 
     @Transactional
+    public FriendRequestResponseDto sendRequestByEmail(UUID senderId, String receiverEmail) {
+        UUID receiverId = profileDirectoryService.resolveProfileIdByEmail(receiverEmail);
+        return sendRequest(senderId, receiverId);
+    }
+
+    @Transactional
     public FriendRequestResponseDto sendRequest(UUID senderId, UUID receiverId) {
         validateDistinctProfiles(senderId, receiverId);
         ensureNotBlockedEitherDirection(senderId, receiverId);

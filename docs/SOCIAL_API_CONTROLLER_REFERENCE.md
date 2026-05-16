@@ -17,14 +17,20 @@ SOCIAL_APP_PORT=8083
 ## Friend REST API
 
 ### POST `/api/v1/friends/requests`
-Create a friend request.
+Create a friend request. The receiver is identified by their account email; the
+service resolves it to the corresponding `profile_id` via `profile_directory`.
 
 Request body:
 ```json
 {
-  "receiverId": "uuid"
+  "receiverEmail": "teen002.dev@mhsa.local"
 }
 ```
+
+Errors:
+- `404 Not Found` — no profile is registered for the provided email.
+- `409 Conflict` — receiver resolves to the caller's own profile, or the pair
+  is already friends / has a pending request.
 
 ### DELETE `/api/v1/friends/requests/{requestId}`
 Cancel a pending request (sender only).

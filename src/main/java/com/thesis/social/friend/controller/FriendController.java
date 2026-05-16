@@ -38,12 +38,12 @@ public class FriendController {
 
     @PostMapping("/requests")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('USER','ADMIN') and @accessGuard.isNotCurrentProfile(#request.receiverId())")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public FriendRequestResponseDto sendRequest(
         @AuthenticationPrincipal AuthenticatedProfile profile,
         @Valid @RequestBody SendFriendRequestDto request
     ) {
-        return friendService.sendRequest(profile.getProfileId(), request.receiverId());
+        return friendService.sendRequestByEmail(profile.getProfileId(), request.receiverEmail());
     }
 
     @DeleteMapping("/requests/{requestId}")

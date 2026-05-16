@@ -17,11 +17,18 @@ public class ProfileDirectoryEntity {
     @Column(name = "profile_name", nullable = false)
     private String profileName;
 
+    @Column(name = "email")
+    private String email;
+
     public UUID getProfileId() {
         return profileId;
     }
 
     public String getProfileName() {
         return profileName;
+    }
+
+    public String getEmail() {
+        return email;
     }
 }
