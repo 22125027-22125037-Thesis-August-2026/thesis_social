@@ -165,11 +165,12 @@ public class ChatService {
             simpMessagingTemplate.convertAndSendToUser(participantId.toString(), USER_QUEUE_MESSAGES, dto);
         }
 
-        publishEvent(EventTypes.MESSAGE_SENT, Map.of(
-            "messageId", saved.getId(),
-            "channelId", saved.getChannelId(),
-            "senderId", saved.getSenderId()
-        ));
+        // Temporarily disable message-sent domain event publishing.
+        // publishEvent(EventTypes.MESSAGE_SENT, Map.of(
+        //     "messageId", saved.getId(),
+        //     "channelId", saved.getChannelId(),
+        //     "senderId", saved.getSenderId()
+        // ));
 
         return dto;
     }
