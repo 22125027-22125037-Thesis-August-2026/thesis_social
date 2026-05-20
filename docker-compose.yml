@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${SOCIAL_DB_USER:-social}
       POSTGRES_PASSWORD: ${SOCIAL_DB_PASSWORD:-social}
     ports:
-      - "${SOCIAL_DB_EXTERNAL_PORT:-5435}:5432"
+      - "${SOCIAL_DB_EXTERNAL_PORT:-5436}:5432"
     volumes:
       - social_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,7 +25,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${SOCIAL_PGADMIN_EMAIL:-admin@social.local}
       PGADMIN_DEFAULT_PASSWORD: ${SOCIAL_PGADMIN_PASSWORD:-admin}
     ports:
-      - "${SOCIAL_PGADMIN_PORT:-5052}:80"
+      - "${SOCIAL_PGADMIN_PORT:-5056}:80"
     volumes:
       - social_pgadmin_data:/var/lib/pgadmin
     depends_on:
@@ -45,8 +45,8 @@ services:
       "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp;
       rabbitmq-server"
     ports:
-      - "${SOCIAL_RABBIT_EXTERNAL_PORT:-5674}:5672"
-      - "${SOCIAL_RABBIT_MGMT_PORT:-15674}:15672"
+      - "${SOCIAL_RABBIT_EXTERNAL_PORT:-5676}:5672"
+      - "${SOCIAL_RABBIT_MGMT_PORT:-15676}:15672"
       - "${SOCIAL_STOMP_RELAY_PORT:-61613}:61613"
       - "${SOCIAL_RABBIT_WEB_STOMP_PORT:-15675}:15674"
     healthcheck:
@@ -68,7 +68,7 @@ services:
       SOCIAL_RABBIT_HOST: ${SOCIAL_RABBIT_HOST:-rabbitmq}
       SOCIAL_STOMP_RELAY_HOST: ${SOCIAL_STOMP_RELAY_HOST:-rabbitmq}
     ports:
-      - "${SOCIAL_APP_PORT:-8083}:${SOCIAL_APP_PORT:-8083}"
+      - "${SOCIAL_APP_PORT:-8086}:${SOCIAL_APP_PORT:-8086}"
     depends_on:
       postgres:
         condition: service_healthy
