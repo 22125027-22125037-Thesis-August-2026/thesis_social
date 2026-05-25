@@ -25,7 +25,7 @@ spring:
     password: ${SOCIAL_RABBIT_PASSWORD:guest}
 
 server:
-  port: ${SOCIAL_APP_PORT:8080}
+  port: ${SOCIAL_APP_PORT:8086}
 
 social:
   cors:

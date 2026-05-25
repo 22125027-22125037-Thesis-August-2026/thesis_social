@@ -18,22 +18,6 @@ services:
     networks:
       - backend
 
-  pgadmin:
-    image: dpage/pgadmin4:8.13
-    container_name: social-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${SOCIAL_PGADMIN_EMAIL:-admin@social.local}
-      PGADMIN_DEFAULT_PASSWORD: ${SOCIAL_PGADMIN_PASSWORD:-admin}
-    ports:
-      - "${SOCIAL_PGADMIN_PORT:-5056}:80"
-    volumes:
-      - social_pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - backend
-
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: social-rabbitmq
@@ -68,7 +52,7 @@ services:
       SOCIAL_RABBIT_HOST: ${SOCIAL_RABBIT_HOST:-rabbitmq}
       SOCIAL_STOMP_RELAY_HOST: ${SOCIAL_STOMP_RELAY_HOST:-rabbitmq}
     ports:
-      - "${SOCIAL_APP_PORT:-8086}:${SOCIAL_APP_PORT:-8086}"
+      - "8086:8086"
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,7 +64,6 @@ services:
 
 volumes:
   social_postgres_data:
-  social_pgadmin_data:
 
 networks:
   backend:
