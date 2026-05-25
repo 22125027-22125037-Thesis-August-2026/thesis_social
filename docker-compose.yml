@@ -76,6 +76,7 @@ services:
         condition: service_healthy
     networks:
       - backend
+      - umatter-shared
 
 volumes:
   social_postgres_data:
@@ -84,3 +85,5 @@ volumes:
 networks:
   backend:
     driver: bridge
+umatter-shared:
+    external: true
