@@ -85,5 +85,5 @@ volumes:
 networks:
   backend:
     driver: bridge
-umatter-shared:
-    external: true
+  umatter-shared:
+      external: true
