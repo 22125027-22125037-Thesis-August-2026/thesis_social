@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${SOCIAL_DB_USER:-social}
       POSTGRES_PASSWORD: ${SOCIAL_DB_PASSWORD:-social}
     ports:
-      - "${SOCIAL_DB_EXTERNAL_PORT:-5436}:5432"
+      - "5436:5432"
     volumes:
       - social_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -29,10 +29,10 @@ services:
       "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp;
       rabbitmq-server"
     ports:
-      - "${SOCIAL_RABBIT_EXTERNAL_PORT:-5676}:5672"
-      - "${SOCIAL_RABBIT_MGMT_PORT:-15676}:15672"
-      - "${SOCIAL_STOMP_RELAY_PORT:-61613}:61613"
-      - "${SOCIAL_RABBIT_WEB_STOMP_PORT:-15675}:15674"
+      - "5676:5672"
+      - "15676:15672"
+      - "61613:61613"
+      - "15675:15674"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 10s
@@ -48,7 +48,7 @@ services:
     env_file:
       - .env
     environment:
-      SOCIAL_DB_URL: jdbc:postgresql://${SOCIAL_DB_HOST:-postgres}:${SOCIAL_DB_PORT:-5432}/${SOCIAL_DB_NAME:-social_features}
+      SOCIAL_DB_URL: jdbc:postgresql://${SOCIAL_DB_HOST:-postgres}:5432/${SOCIAL_DB_NAME:-social_features}
       SOCIAL_RABBIT_HOST: ${SOCIAL_RABBIT_HOST:-rabbitmq}
       SOCIAL_STOMP_RELAY_HOST: ${SOCIAL_STOMP_RELAY_HOST:-rabbitmq}
     ports:

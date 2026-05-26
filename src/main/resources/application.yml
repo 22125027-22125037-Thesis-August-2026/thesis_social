@@ -4,7 +4,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
   datasource:
-    url: ${SOCIAL_DB_URL:jdbc:postgresql://localhost:${SOCIAL_DB_PORT:5432}/${SOCIAL_DB_NAME:social_features}}
+    url: ${SOCIAL_DB_URL:jdbc:postgresql://localhost:5432/${SOCIAL_DB_NAME:social_features}}
     username: ${SOCIAL_DB_USER:social}
     password: ${SOCIAL_DB_PASSWORD:social}
     driver-class-name: org.postgresql.Driver
@@ -20,7 +20,7 @@ spring:
     locations: classpath:db/migration
   rabbitmq:
     host: ${SOCIAL_RABBIT_HOST:localhost}
-    port: ${SOCIAL_RABBIT_PORT:5672}
+    port: 5672
     username: ${SOCIAL_RABBIT_USER:guest}
     password: ${SOCIAL_RABBIT_PASSWORD:guest}
 
@@ -42,7 +42,7 @@ social:
     user-destination-prefix: /user
   broker:
     relay-host: ${SOCIAL_STOMP_RELAY_HOST:localhost}
-    relay-port: ${SOCIAL_STOMP_RELAY_PORT:61613}
+    relay-port: 61613
     relay-client-login: ${SOCIAL_STOMP_RELAY_LOGIN:guest}
     relay-client-passcode: ${SOCIAL_STOMP_RELAY_PASSCODE:guest}
     relay-system-login: ${SOCIAL_STOMP_SYSTEM_LOGIN:guest}
