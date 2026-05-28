@@ -18,3 +18,4 @@ Thumbs.db
 # Logs
 *.log
 .env.local-bak-20260520
+.claude/settings.local.json

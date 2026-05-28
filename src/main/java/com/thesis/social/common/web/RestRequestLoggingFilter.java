@@ -44,7 +44,7 @@ public class RestRequestLoggingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/actuator") || path.startsWith("/error");
+        return path.startsWith("/actuator") || path.startsWith("/error") || path.startsWith("/ws");
     }
 
     private String resolveProfileId() {

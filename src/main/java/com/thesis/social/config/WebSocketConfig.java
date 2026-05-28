@@ -17,7 +17,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final SocialProperties properties;
     private final StompJwtChannelInterceptor stompJwtChannelInterceptor;
 
-    public WebSocketConfig(SocialProperties properties, StompJwtChannelInterceptor stompJwtChannelInterceptor) {
+    public WebSocketConfig(
+        SocialProperties properties,
+        StompJwtChannelInterceptor stompJwtChannelInterceptor
+    ) {
         this.properties = properties;
         this.stompJwtChannelInterceptor = stompJwtChannelInterceptor;
     }
