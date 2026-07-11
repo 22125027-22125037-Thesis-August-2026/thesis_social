@@ -1,7 +1,12 @@
+# Memory ceilings target an 8 GiB host shared with the other three stacks. JAVA_TOOL_OPTIONS
+# uses MaxRAMPercentage rather than a literal -Xmx so the heap is derived from mem_limit (the
+# JVM reads the cgroup) and the two cannot drift apart.
 services:
   postgres:
     image: postgres:16-alpine
     container_name: social-postgres
+    mem_limit: 256m
+    command: postgres -c shared_buffers=32MB -c max_connections=50
     environment:
       POSTGRES_DB: ${SOCIAL_DB_NAME:-social_features}
       POSTGRES_USER: ${SOCIAL_DB_USER:-social}
@@ -21,6 +26,9 @@ services:
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: social-rabbitmq
+    # Higher ceiling than the auth broker: this one also loads the STOMP / web-STOMP
+    # plugins that carry chat.
+    mem_limit: 512m
     environment:
       RABBITMQ_DEFAULT_USER: ${SOCIAL_RABBIT_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${SOCIAL_RABBIT_PASSWORD:-guest}
@@ -45,9 +53,11 @@ services:
     build:
       context: .
     container_name: social-api
+    mem_limit: 640m
     env_file:
       - .env
     environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC -Xss512k"
       SOCIAL_DB_URL: jdbc:postgresql://${SOCIAL_DB_HOST:-postgres}:5432/${SOCIAL_DB_NAME:-social_features}
       SOCIAL_RABBIT_HOST: ${SOCIAL_RABBIT_HOST:-rabbitmq}
       SOCIAL_STOMP_RELAY_HOST: ${SOCIAL_STOMP_RELAY_HOST:-rabbitmq}
