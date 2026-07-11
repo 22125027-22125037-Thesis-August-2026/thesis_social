@@ -6,6 +6,7 @@ services:
     image: postgres:16-alpine
     container_name: social-postgres
     mem_limit: 256m
+    restart: unless-stopped
     command: postgres -c shared_buffers=32MB -c max_connections=50
     environment:
       POSTGRES_DB: ${SOCIAL_DB_NAME:-social_features}
@@ -29,6 +30,7 @@ services:
     # Higher ceiling than the auth broker: this one also loads the STOMP / web-STOMP
     # plugins that carry chat.
     mem_limit: 512m
+    restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${SOCIAL_RABBIT_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${SOCIAL_RABBIT_PASSWORD:-guest}
@@ -54,6 +56,7 @@ services:
       context: .
     container_name: social-api
     mem_limit: 640m
+    restart: unless-stopped
     env_file:
       - .env
     environment:
