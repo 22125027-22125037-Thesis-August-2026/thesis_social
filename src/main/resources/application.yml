@@ -50,3 +50,15 @@ social:
   event:
     exchange: ${SOCIAL_EVENTS_EXCHANGE:social.domain.events}
     routing-prefix: ${SOCIAL_EVENTS_ROUTING_PREFIX:social}
+
+# Shared domain-event broker (the auth stack's RabbitMQ) that therapist-api publishes
+# assignment events on. Distinct from spring.rabbitmq above, which is the social service's
+# own broker (STOMP relay + social domain events). Host port 5671 -> auth rabbitmq 5672.
+therapist:
+  api:
+    exchange: ${THERAPIST_API_EXCHANGE:booking.exchange}
+  rabbitmq:
+    host: ${THERAPIST_RABBIT_HOST:localhost}
+    port: ${THERAPIST_RABBIT_PORT:5671}
+    username: ${THERAPIST_RABBIT_USER:guest}
+    password: ${THERAPIST_RABBIT_PASSWORD:guest}

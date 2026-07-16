@@ -64,6 +64,12 @@ services:
       SOCIAL_DB_URL: jdbc:postgresql://${SOCIAL_DB_HOST:-postgres}:5432/${SOCIAL_DB_NAME:-social_features}
       SOCIAL_RABBIT_HOST: ${SOCIAL_RABBIT_HOST:-rabbitmq}
       SOCIAL_STOMP_RELAY_HOST: ${SOCIAL_STOMP_RELAY_HOST:-rabbitmq}
+      # Shared domain-event broker (auth stack's RabbitMQ) carrying therapist-api's
+      # assignment events; reached over the host gateway on its published port.
+      THERAPIST_RABBIT_HOST: ${THERAPIST_RABBIT_HOST:-host.docker.internal}
+      THERAPIST_RABBIT_PORT: ${THERAPIST_RABBIT_PORT:-5671}
+      THERAPIST_RABBIT_USER: ${THERAPIST_RABBIT_USER:-guest}
+      THERAPIST_RABBIT_PASSWORD: ${THERAPIST_RABBIT_PASSWORD:-guest}
     ports:
       - "8086:8086"
     depends_on:
@@ -74,6 +80,10 @@ services:
     networks:
       - backend
       - umatter-shared
+    # Resolve host.docker.internal to the host gateway so the container can
+    # reach the auth stack's RabbitMQ on its host-published port (5671).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   social_postgres_data:
