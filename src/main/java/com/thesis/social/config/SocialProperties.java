@@ -52,6 +52,7 @@ public class SocialProperties {
 
         public static class Jwt {
             private String publicKey;
+            private String jwksUri;
             private String signingKid;
             private String issuer;
             private String audience;
@@ -62,6 +63,14 @@ public class SocialProperties {
 
             public void setPublicKey(String publicKey) {
                 this.publicKey = publicKey;
+            }
+
+            public String getJwksUri() {
+                return jwksUri;
+            }
+
+            public void setJwksUri(String jwksUri) {
+                this.jwksUri = jwksUri;
             }
 
             public String getSigningKid() {

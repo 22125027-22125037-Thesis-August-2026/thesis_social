@@ -32,7 +32,11 @@ social:
     allowed-origins: ${SOCIAL_CORS_ALLOWED_ORIGINS:http://localhost:3000}
   security:
     jwt:
+      # Preferred: resolve verification keys from Auth's published key set, selected by kid.
+      # Falls back to the static public key when this is unset.
+      jwks-uri: ${SOCIAL_JWT_JWKS_URI:}
       public-key: ${SOCIAL_JWT_PUBLIC_KEY:}
+      # Pinning a kid is incompatible with JWKS rotation and is ignored when jwks-uri is set.
       signing-kid: ${SOCIAL_JWT_SIGNING_KID:}
       issuer: ${SOCIAL_JWT_ISSUER:therapist-auth}
       audience: ${SOCIAL_JWT_AUDIENCE:social-features}

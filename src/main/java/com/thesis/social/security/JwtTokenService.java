@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
@@ -34,15 +36,44 @@ public class JwtTokenService {
     private static final String ROLES_CLAIM = "roles";
     private static final String ROLE_CLAIM = "role";
 
+    private static final Logger log = LoggerFactory.getLogger(JwtTokenService.class);
+
     private final SocialProperties socialProperties;
     private final JwtDecoder jwtDecoder;
+    private final boolean usingJwks;
 
+    /**
+     * Prefers Auth's published key set over a statically configured public key.
+     *
+     * <p>With a JWKS URI, Nimbus selects the verification key by the token's {@code kid} and
+     * refetches when it sees an unknown one, so a key rotation at Auth needs no redeploy here.
+     * The fetch is lazy — the first token triggers it — so Auth is not a startup dependency.
+     */
     public JwtTokenService(SocialProperties socialProperties) {
         this.socialProperties = socialProperties;
-        RSAPublicKey publicKey = resolveRsaPublicKey(socialProperties.getSecurity().getJwt().getPublicKey());
-        NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey)
-            .signatureAlgorithm(SignatureAlgorithm.RS256)
-            .build();
+        String jwksUri = socialProperties.getSecurity().getJwt().getJwksUri();
+        String staticKey = socialProperties.getSecurity().getJwt().getPublicKey();
+
+        NimbusJwtDecoder decoder;
+        if (StringUtils.hasText(jwksUri)) {
+            if (StringUtils.hasText(staticKey)) {
+                log.warn("Both social.security.jwt.jwks-uri and public-key are set; "
+                    + "the static key is ignored in favour of the published key set");
+            }
+            decoder = NimbusJwtDecoder.withJwkSetUri(jwksUri)
+                .jwsAlgorithm(org.springframework.security.oauth2.jose.jws.SignatureAlgorithm.RS256)
+                .build();
+            this.usingJwks = true;
+            log.info("JWT verification keys will be resolved from JWKS at {}", jwksUri);
+        } else {
+            RSAPublicKey publicKey = resolveRsaPublicKey(staticKey);
+            decoder = NimbusJwtDecoder.withPublicKey(publicKey)
+                .signatureAlgorithm(SignatureAlgorithm.RS256)
+                .build();
+            this.usingJwks = false;
+            log.info("JWT verification configured with a static RSA public key");
+        }
+
         decoder.setJwtValidator(JwtValidators.createDefault());
         this.jwtDecoder = decoder;
     }
@@ -149,6 +180,14 @@ public class JwtTokenService {
     }
 
     private void validateKidIfConfigured(Jwt jwt) {
+        // Under JWKS the kid *is* the key-selection mechanism: Nimbus already refused any token
+        // whose kid it could not resolve from the published set. Additionally pinning one kid
+        // here would reject the new key the moment Auth rotates — the precise failure this
+        // migration exists to remove — so the pin is deliberately ignored in that mode.
+        if (usingJwks) {
+            return;
+        }
+
         String expectedKid = socialProperties.getSecurity().getJwt().getSigningKid();
         if (!StringUtils.hasText(expectedKid)) {
             return;
