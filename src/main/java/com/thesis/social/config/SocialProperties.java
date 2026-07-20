@@ -127,6 +127,21 @@ public class SocialProperties {
         private String relayClientPasscode;
         private String relaySystemLogin;
         private String relaySystemPasscode;
+        /**
+         * RabbitMQ virtual host for the STOMP relay. Must be pinned: without it Spring forwards the
+         * client's STOMP {@code host} header (which stomp.js sets to the broker URL's hostname, e.g.
+         * umatter-apcs.duckdns.org) straight to RabbitMQ as the vhost, and RabbitMQ — which only has
+         * "/" — rejects every CONNECT with "Virtual host ... access denied".
+         */
+        private String relayVirtualHost = "/";
+
+        public String getRelayVirtualHost() {
+            return relayVirtualHost;
+        }
+
+        public void setRelayVirtualHost(String relayVirtualHost) {
+            this.relayVirtualHost = relayVirtualHost;
+        }
 
         public String getRelayHost() {
             return relayHost;

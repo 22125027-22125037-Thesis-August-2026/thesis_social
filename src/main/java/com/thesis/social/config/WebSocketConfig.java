@@ -34,6 +34,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableStompBrokerRelay("/queue", "/topic")
+            // Pin the RabbitMQ virtual host. Without this Spring forwards whatever `host` header the
+            // client put in its STOMP CONNECT frame, and stomp.js sets that to the broker URL's
+            // hostname (umatter-apcs.duckdns.org). RabbitMQ only has "/", so it rejected every
+            // CONNECT with "Virtual host '...' access denied" and no chat session could ever open.
+            .setVirtualHost(properties.getBroker().getRelayVirtualHost())
             .setRelayHost(properties.getBroker().getRelayHost())
             .setRelayPort(properties.getBroker().getRelayPort())
             .setClientLogin(properties.getBroker().getRelayClientLogin())

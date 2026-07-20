@@ -43,6 +43,7 @@ social:
   broker:
     relay-host: ${SOCIAL_STOMP_RELAY_HOST:localhost}
     relay-port: 61613
+    relay-virtual-host: ${SOCIAL_STOMP_RELAY_VHOST:/}
     relay-client-login: ${SOCIAL_STOMP_RELAY_LOGIN:guest}
     relay-client-passcode: ${SOCIAL_STOMP_RELAY_PASSCODE:guest}
     relay-system-login: ${SOCIAL_STOMP_SYSTEM_LOGIN:guest}
