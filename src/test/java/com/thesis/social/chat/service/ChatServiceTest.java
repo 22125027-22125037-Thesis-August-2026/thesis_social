@@ -25,6 +25,7 @@ import com.thesis.social.profile.service.ProfileDirectoryService;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,7 +113,9 @@ class ChatServiceTest {
         assertEquals("sender_dev", response.senderUsername());
         assertEquals("hello", response.content());
         verify(simpMessagingTemplate).convertAndSendToUser(eq(receiverId.toString()), eq("/queue/messages"), any(ChatMessageResponseDto.class));
-        verify(eventPublisher).publish(eq(EventTypes.MESSAGE_SENT), org.mockito.ArgumentMatchers.<Map<String, Object>>any());
+        // No `message_sent` assertion: the publish is commented out in ChatService and the
+        // notification-api consumer for it was deleted in July 2026, so there is no such event
+        // anywhere in the system. Re-add this verify() if the publish is ever restored.
     }
 
     @Test
@@ -231,6 +234,11 @@ class ChatServiceTest {
         when(chatParticipantRepository.findByChannelId(channelId)).thenReturn(List.of(selfParticipant, counterpartParticipant));
         when(messageRepository.findFirstByChannelIdOrderByCreatedAtDesc(channelId)).thenReturn(java.util.Optional.of(lastMessage));
         when(messageRepository.countByChannelIdAndIsReadFalseAndSenderIdNot(channelId, profileId)).thenReturn(3L);
+        // listChannels resolves names in a batch via resolveProfileNames(Set), not the singular
+        // resolveProfileName — without this stub the mock returns null and counterpartUsername
+        // is null, which is what made this test red rather than any production defect.
+        when(profileDirectoryService.resolveProfileNames(Set.of(profileId, counterpartId)))
+            .thenReturn(Map.of(profileId, "self_dev", counterpartId, "counterpart_dev"));
 
         var response = chatService.listChannels(profileId);
 
