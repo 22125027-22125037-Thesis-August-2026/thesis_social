@@ -23,6 +23,10 @@ spring:
     port: 5672
     username: ${SOCIAL_RABBIT_USER:guest}
     password: ${SOCIAL_RABBIT_PASSWORD:guest}
+    # Explicit so it is never left null: RabbitProperties has no default here, and the
+    # connection factory in TherapistAssignmentMessagingConfig forwards whatever this
+    # resolves to. The broker only has "/".
+    virtual-host: ${SOCIAL_RABBIT_VHOST:/}
 
 server:
   port: ${SOCIAL_APP_PORT:8086}

@@ -83,7 +83,18 @@ public class TherapistAssignmentMessagingConfig {
         connectionFactory.setPort(properties.determinePort());
         connectionFactory.setUsername(properties.determineUsername());
         connectionFactory.setPassword(properties.determinePassword());
-        connectionFactory.setVirtualHost(properties.determineVirtualHost());
+        // Only override the driver's "/" default when a vhost is actually configured.
+        // determineVirtualHost() returns null whenever spring.rabbitmq.virtual-host is unset,
+        // and pushing that null through wiped the default: every AMQP connection then died
+        // with "Invalid configuration: 'virtualHost' must be non-null", so every domain-event
+        // publish 500'd (friend requests, friend-request accepts, read receipts). Boot's own
+        // auto-configuration guards this with .whenNonNull() — this hand-rolled stand-in,
+        // which exists only because declaring any ConnectionFactory bean makes Boot back off,
+        // has to guard it too.
+        String virtualHost = properties.determineVirtualHost();
+        if (virtualHost != null) {
+            connectionFactory.setVirtualHost(virtualHost);
+        }
         return connectionFactory;
     }
 
